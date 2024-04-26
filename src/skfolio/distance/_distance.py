@@ -572,3 +572,44 @@ def _corr_to_distance(
     scaler = 1 / (1 - min(bounds))
     distance = np.sqrt(np.clip(scaler * (1 - corr), a_min=0.0, a_max=1.0))
     return corr, distance
+
+from dtaidistance import dtw
+
+def calculate_dtw_distance(series1, series2, step_pattern="symmetric1"):
+    # Calcular la distancia DTW entre dos series
+    alignment = dtw.warping_path(series1, series2, step_pattern=step_pattern)
+    dist = alignment[0]
+    return dist
+
+import numpy as np
+
+def dtw_to_distance_matrix(data: np.ndarray, step_pattern="symmetric1") -> np.ndarray:
+    """
+    Genera una matriz de distancias DTW a partir de un conjunto de series de tiempo.
+    
+    Parameters
+    ----------
+    data : ndarray of shape (n_series, n_points)
+        Conjunto de series de tiempo.
+    
+    step_pattern : str
+        Patrón de paso para DTW.
+    
+    Returns
+    -------
+    distance_matrix : ndarray of shape (n_series, n_series)
+        Matriz de distancias DTW.
+    """
+    n_series = data.shape[0]
+    distance_matrix = np.zeros((n_series, n_series))
+    
+    # Calcular la matriz de distancias DTW
+    for i in range(n_series):
+        for j in range(i + 1, n_series):
+            dist = calculate_dtw_distance(data[i], data[j], step_pattern=step_pattern)
+            distance_matrix[i, j] = dist
+            distance_matrix[j, i] = dist  # Matriz simétrica
+    
+    return distance_matrix
+
+
